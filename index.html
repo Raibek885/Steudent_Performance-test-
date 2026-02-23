@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Прогноз успеваемости</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+       
+        select:focus, input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen p-6 flex justify-center items-center">
+
+    <div class="max-w-4xl w-full bg-white rounded-2xl shadow-xl p-8">
+        <h1 class="text-3xl font-bold text-center text-indigo-600 mb-8">Предиктивная модель</h1>
+        
+        <form id="predictForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <div class="space-y-4">
+                <h2 class="text-xl font-semibold text-slate-700 border-b pb-2">Числовые данные</h2>
+                
+                <div><label class="block text-sm font-medium mb-1">Часы учебы (Hours Studied)</label>
+                <input type="number" step="any" name="Hours_Studied" required class="w-full border rounded-lg p-2.5 bg-slate-50 transition"></div>
+                
+                <div><label class="block text-sm font-medium mb-1">Посещаемость % (Attendance)</label>
+                <input type="number" step="any" name="Attendance" required class="w-full border rounded-lg p-2.5 bg-slate-50 transition"></div>
+                
+                <div><label class="block text-sm font-medium mb-1">Часы сна (Sleep Hours)</label>
+                <input type="number" step="any" name="Sleep_Hours" required class="w-full border rounded-lg p-2.5 bg-slate-50 transition"></div>
+                
+                <div><label class="block text-sm font-medium mb-1">Предыдущие оценки (Previous Scores)</label>
+                <input type="number" step="any" name="Previous_Scores" required class="w-full border rounded-lg p-2.5 bg-slate-50 transition"></div>
+                
+                <div><label class="block text-sm font-medium mb-1">Часы с репетитором (Tutoring Sessions)</label>
+                <input type="number" step="any" name="Tutoring_Sessions" required class="w-full border rounded-lg p-2.5 bg-slate-50 transition"></div>
+                
+                <div><label class="block text-sm font-medium mb-1">Физическая активность (Physical Activity)</label>
+                <input type="number" step="any" name="Physical_Activity" required class="w-full border rounded-lg p-2.5 bg-slate-50 transition"></div>
+            </div>
+
+            <div class="space-y-4">
+                <h2 class="text-xl font-semibold text-slate-700 border-b pb-2">Категориальные данные</h2>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-sm font-medium mb-1">Вовлеч. родителей</label>
+                    <select name="Parental_Involvement" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
+                        <option value="Low">Low</option><option value="Medium" selected>Medium</option><option value="High">High</option>
+                    </select></div>
+
+                    <div><label class="block text-sm font-medium mb-1">Доступ к ресурсам</label>
+                    <select name="Access_to_Resources" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
+                        <option value="Low">Low</option><option value="Medium" selected>Medium</option><option value="High">High</option>
+                    </select></div>
+
+                    <div><label class="block text-sm font-medium mb-1">Доп. занятия</label>
+                    <select name="Extracurricular_Activities" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
+                        <option value="No">No</option><option value="Yes">Yes</option>
+                    </select></div>
+
+                    <div><label class="block text-sm font-medium mb-1">Мотивация</label>
+                    <select name="Motivation_Level" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
+                        <option value="Low">Low</option><option value="Medium" selected>Medium</option><option value="High">High</option>
+                    </select></div>
+
+                    <div><label class="block text-sm font-medium mb-1">Доступ в интернет</label>
+                    <select name="Internet_Access" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
+                        <option value="No">No</option><option value="Yes" selected>Yes</option>
+                    </select></div>
+
+                    <div><label class="block text-sm font-medium mb-1">Доход семьи</label>
+                    <select name="Family_Income" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
+                        <option value="Low">Low</option><option value="Medium" selected>Medium</option><option value="High">High</option>
+                    </select></div>
+
+                    <div><label class="block text-sm font-medium mb-1">Качество учителей</label>
+                    <select name="Teacher_Quality" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
+                        <option value="Low">Low</option><option value="Medium" selected>Medium</option><option value="High">High</option>
+                    </select></div>
+
+                    <div><label class="block text-sm font-medium mb-1">Тип школы</label>
+                    <select name="School_Type" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
+                        <option value="Public" selected>Public</option><option value="Private">Private</option>
+                    </select></div>
+
+                    <div><label class="block text-sm font-medium mb-1">Влияние сверстников</label>
+                    <select name="Peer_Influence" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
+                        <option value="Negative">Negative</option><option value="Neutral" selected>Neutral</option><option value="Positive">Positive</option>
+                    </select></div>
+
+                    <div><label class="block text-sm font-medium mb-1">Трудности в обуч.</label>
+                    <select name="Learning_Disabilities" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
+                        <option value="No" selected>No</option><option value="Yes">Yes</option>
+                    </select></div>
+
+                    <div><label class="block text-sm font-medium mb-1">Образование родит.</label>
+                    <select name="Parental_Education_Level" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
+                        <option value="High School">High School</option><option value="College" selected>College</option><option value="Postgraduate">Postgraduate</option>
+                    </select></div>
+
+                    <div><label class="block text-sm font-medium mb-1">Удаленность</label>
+                    <select name="Distance_from_Home" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
+                        <option value="Near">Near</option><option value="Moderate" selected>Moderate</option><option value="Far">Far</option>
+                    </select></div>
+
+                    <div class="col-span-2"><label class="block text-sm font-medium mb-1">Пол</label>
+                    <select name="Gender" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
+                        <option value="Male">Male</option><option value="Female">Female</option>
+                    </select></div>
+                </div>
+            </div>
+
+            <div class="col-span-1 md:col-span-2 mt-4">
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-md">
+                    Получить предсказание
+                </button>
+            </div>
+            
+            <div class="col-span-1 md:col-span-2 mt-4">
+                <div id="resultBox" class="hidden text-center p-4 rounded-xl font-bold text-lg border">
+                    </div>
+            </div>
+
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('predictForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const resultBox = document.getElementById('resultBox');
+            resultBox.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+            resultBox.innerHTML = 'Загрузка...';
+            resultBox.classList.add('block', 'bg-blue-100', 'text-blue-800');
+
+            
+            const formData = new FormData(this);
+            const data = {};
+            
+            for (let [key, value] of formData.entries()) {
+                
+                if (!isNaN(value) && value.trim() !== "") {
+                    data[key] = parseFloat(value);
+                } else {
+                    data[key] = value;
+                }
+            }
+
+            try {
+                
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    resultBox.classList.remove('bg-blue-100', 'text-blue-800');
+                    resultBox.classList.add('bg-green-100', 'text-green-800', 'border-green-300');
+                    
+                    resultBox.innerHTML = `Прогнозируемое значение: <span class="text-2xl ml-2">${result.predicted_value.toFixed(2)}</span>`;
+                } else {
+                    throw new Error(result.detail || 'Неизвестная ошибка');
+                }
+            } catch (error) {
+                resultBox.classList.remove('bg-blue-100', 'text-blue-800');
+                resultBox.classList.add('bg-red-100', 'text-red-800', 'border-red-300');
+                resultBox.innerHTML = `Ошибка: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>
