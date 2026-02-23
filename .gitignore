@@ -1,0 +1,13 @@
+# Virtual environment
+project/
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Model files
+*.joblib
+
+# VS Code
+.vscode/
