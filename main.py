@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 import joblib
+import uvicorn
 import pandas as pd
 from models import ModelFeature, PredictionOut
 
@@ -36,5 +37,4 @@ async def predict_target(features: ModelFeature):
         raise HTTPException(status_code=500, detail=f"Prediction error: {e}")
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run('Fast:app', host='0.0.0.0', port=8000)

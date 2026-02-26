@@ -3,177 +3,532 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ML Прогноз успеваемости</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Academic Performance Predictor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-       
-        select:focus, input:focus {
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --surface2: #1c2230;
+            --border: #2a3347;
+            --gold: #d4a853;
+            --gold-light: #f0c97a;
+            --gold-dim: rgba(212, 168, 83, 0.15);
+            --text: #e8eaf0;
+            --text-muted: #8892a4;
+            --accent: #4f8ef7;
+            --green: #3ecf8e;
+            --red: #f06060;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 300;
+            min-height: 100vh;
+            padding: 2rem 1rem 4rem;
+            background-image:
+                radial-gradient(ellipse 80% 50% at 50% -10%, rgba(212,168,83,0.08) 0%, transparent 70%),
+                repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.02) 39px, rgba(255,255,255,0.02) 40px),
+                repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.02) 39px, rgba(255,255,255,0.02) 40px);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            animation: fadeUp 0.6s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Header ── */
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header-label {
+            font-size: 0.75rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 0.6rem;
+        }
+
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.15;
+        }
+
+        .header h1 span {
+            color: var(--gold);
+        }
+
+        .header p {
+            margin-top: 0.75rem;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        /* ── Card ── */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 0.7rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .card-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, var(--border), transparent);
+        }
+
+        /* ── Numeric grid ── */
+        .numeric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        label {
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            letter-spacing: 0.03em;
+        }
+
+        label span {
+            font-size: 0.68rem;
+            color: var(--border);
+            font-weight: 300;
+        }
+
+        input[type="number"],
+        select {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            padding: 0.6rem 0.85rem;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input[type="number"],
+
+        input[type="number"]:focus,
+        select:focus {
             outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(212, 168, 83, 0.12);
+            background: #1f2636;
+        }
+
+        select {
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238892a4' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.85rem center;
+            padding-right: 2.2rem;
+        }
+
+        /* ── Categorical grid ── */
+        .cat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+            gap: 1rem;
+        }
+
+        /* ── Submit ── */
+        .submit-wrap {
+            margin-top: 0.5rem;
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 0.9rem 1.5rem;
+            background: var(--gold);
+            color: #0d1117;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button[type="submit"]::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.18) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.5s ease;
+        }
+
+        button[type="submit"]:hover {
+            background: var(--gold-light);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 24px rgba(212,168,83,0.3);
+        }
+
+        button[type="submit"]:hover::after {
+            transform: translateX(100%);
+        }
+
+        button[type="submit"]:active {
+            transform: translateY(0);
+        }
+
+        button[type="submit"]:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ── Result ── */
+        #resultBox {
+            display: none;
+            margin-top: 1.25rem;
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            border: 1px solid;
+            animation: fadeUp 0.4s ease both;
+        }
+
+        #resultBox.success {
+            background: rgba(62, 207, 142, 0.07);
+            border-color: rgba(62,207,142,0.3);
+        }
+
+        #resultBox.error {
+            background: rgba(240, 96, 96, 0.07);
+            border-color: rgba(240, 96, 96, 0.3);
+        }
+
+        #resultBox.loading {
+            background: var(--gold-dim);
+            border-color: rgba(212,168,83,0.3);
+        }
+
+        .result-label {
+            font-size: 0.72rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            margin-bottom: 0.4rem;
+        }
+
+        .success .result-label { color: var(--green); }
+        .error   .result-label { color: var(--red); }
+        .loading .result-label { color: var(--gold); }
+
+        .result-value {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.8rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .success .result-value { color: var(--green); }
+        .error   .result-value { color: var(--red); font-size: 1rem; font-family: 'DM Sans', sans-serif; }
+        .loading .result-value { color: var(--gold); font-size: 1.2rem; font-family: 'DM Sans', sans-serif; }
+
+        .result-sub {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.3rem;
+        }
+
+        /* ── Spinner ── */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner {
+            display: inline-block;
+            width: 18px; height: 18px;
+            border: 2px solid rgba(212,168,83,0.3);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-right: 8px;
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen p-6 flex justify-center items-center">
+<body>
 
-    <div class="max-w-4xl w-full bg-white rounded-2xl shadow-xl p-8">
-        <h1 class="text-3xl font-bold text-center text-indigo-600 mb-8">Предиктивная модель</h1>
-        
-        <form id="predictForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            <div class="space-y-4">
-                <h2 class="text-xl font-semibold text-slate-700 border-b pb-2">Числовые данные</h2>
-                
-                <div><label class="block text-sm font-medium mb-1">Часы учебы (Hours Studied)</label>
-                <input type="number" step="any" name="Hours_Studied" required class="w-full border rounded-lg p-2.5 bg-slate-50 transition"></div>
-                
-                <div><label class="block text-sm font-medium mb-1">Посещаемость % (Attendance)</label>
-                <input type="number" step="any" name="Attendance" required class="w-full border rounded-lg p-2.5 bg-slate-50 transition"></div>
-                
-                <div><label class="block text-sm font-medium mb-1">Часы сна (Sleep Hours)</label>
-                <input type="number" step="any" name="Sleep_Hours" required class="w-full border rounded-lg p-2.5 bg-slate-50 transition"></div>
-                
-                <div><label class="block text-sm font-medium mb-1">Предыдущие оценки (Previous Scores)</label>
-                <input type="number" step="any" name="Previous_Scores" required class="w-full border rounded-lg p-2.5 bg-slate-50 transition"></div>
-                
-                <div><label class="block text-sm font-medium mb-1">Часы с репетитором (Tutoring Sessions)</label>
-                <input type="number" step="any" name="Tutoring_Sessions" required class="w-full border rounded-lg p-2.5 bg-slate-50 transition"></div>
-                
-                <div><label class="block text-sm font-medium mb-1">Физическая активность (Physical Activity)</label>
-                <input type="number" step="any" name="Physical_Activity" required class="w-full border rounded-lg p-2.5 bg-slate-50 transition"></div>
-            </div>
+<div class="container">
 
-            <div class="space-y-4">
-                <h2 class="text-xl font-semibold text-slate-700 border-b pb-2">Категориальные данные</h2>
+    <header class="header">
+        <p class="header-label">Machine Learning · Regression Model</p>
+        <h1>Student <span>Performance</span><br>Predictor</h1>
+        <p>Enter student attributes below to receive an exam score prediction.</p>
+    </header>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-sm font-medium mb-1">Вовлеч. родителей</label>
-                    <select name="Parental_Involvement" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
-                        <option value="Low">Low</option><option value="Medium" selected>Medium</option><option value="High">High</option>
-                    </select></div>
+    <form id="predictForm">
 
-                    <div><label class="block text-sm font-medium mb-1">Доступ к ресурсам</label>
-                    <select name="Access_to_Resources" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
-                        <option value="Low">Low</option><option value="Medium" selected>Medium</option><option value="High">High</option>
-                    </select></div>
+        <!-- Numeric -->
+        <div class="card">
+            <div class="card-title">Quantitative Factors</div>
+            <div class="numeric-grid">
 
-                    <div><label class="block text-sm font-medium mb-1">Доп. занятия</label>
-                    <select name="Extracurricular_Activities" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
-                        <option value="No">No</option><option value="Yes">Yes</option>
-                    </select></div>
-
-                    <div><label class="block text-sm font-medium mb-1">Мотивация</label>
-                    <select name="Motivation_Level" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
-                        <option value="Low">Low</option><option value="Medium" selected>Medium</option><option value="High">High</option>
-                    </select></div>
-
-                    <div><label class="block text-sm font-medium mb-1">Доступ в интернет</label>
-                    <select name="Internet_Access" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
-                        <option value="No">No</option><option value="Yes" selected>Yes</option>
-                    </select></div>
-
-                    <div><label class="block text-sm font-medium mb-1">Доход семьи</label>
-                    <select name="Family_Income" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
-                        <option value="Low">Low</option><option value="Medium" selected>Medium</option><option value="High">High</option>
-                    </select></div>
-
-                    <div><label class="block text-sm font-medium mb-1">Качество учителей</label>
-                    <select name="Teacher_Quality" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
-                        <option value="Low">Low</option><option value="Medium" selected>Medium</option><option value="High">High</option>
-                    </select></div>
-
-                    <div><label class="block text-sm font-medium mb-1">Тип школы</label>
-                    <select name="School_Type" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
-                        <option value="Public" selected>Public</option><option value="Private">Private</option>
-                    </select></div>
-
-                    <div><label class="block text-sm font-medium mb-1">Влияние сверстников</label>
-                    <select name="Peer_Influence" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
-                        <option value="Negative">Negative</option><option value="Neutral" selected>Neutral</option><option value="Positive">Positive</option>
-                    </select></div>
-
-                    <div><label class="block text-sm font-medium mb-1">Трудности в обуч.</label>
-                    <select name="Learning_Disabilities" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
-                        <option value="No" selected>No</option><option value="Yes">Yes</option>
-                    </select></div>
-
-                    <div><label class="block text-sm font-medium mb-1">Образование родит.</label>
-                    <select name="Parental_Education_Level" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
-                        <option value="High School">High School</option><option value="College" selected>College</option><option value="Postgraduate">Postgraduate</option>
-                    </select></div>
-
-                    <div><label class="block text-sm font-medium mb-1">Удаленность</label>
-                    <select name="Distance_from_Home" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
-                        <option value="Near">Near</option><option value="Moderate" selected>Moderate</option><option value="Far">Far</option>
-                    </select></div>
-
-                    <div class="col-span-2"><label class="block text-sm font-medium mb-1">Пол</label>
-                    <select name="Gender" class="w-full border rounded-lg p-2.5 bg-slate-50 cursor-pointer">
-                        <option value="Male">Male</option><option value="Female">Female</option>
-                    </select></div>
+                <div class="field">
+                    <label>Hours Studied <span>/ week</span></label>
+                    <input type="number" step="any" name="Hours_Studied" placeholder="e.g. 20" required>
                 </div>
+
+                <div class="field">
+                    <label>Attendance <span>%</span></label>
+                    <input type="number" step="any" name="Attendance" placeholder="e.g. 85" required>
+                </div>
+
+                <div class="field">
+                    <label>Sleep Hours <span>/ night</span></label>
+                    <input type="number" step="any" name="Sleep_Hours" placeholder="e.g. 7" required>
+                </div>
+
+                <div class="field">
+                    <label>Previous Scores <span>0–100</span></label>
+                    <input type="number" step="any" name="Previous_Scores" placeholder="e.g. 78" required>
+                </div>
+
+                <div class="field">
+                    <label>Tutoring Sessions <span>/ month</span></label>
+                    <input type="number" step="any" name="Tutoring_Sessions" placeholder="e.g. 4" required>
+                </div>
+
+                <div class="field">
+                    <label>Physical Activity <span>hrs / week</span></label>
+                    <input type="number" step="any" name="Physical_Activity" placeholder="e.g. 3" required>
+                </div>
+
             </div>
+        </div>
 
-            <div class="col-span-1 md:col-span-2 mt-4">
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-md">
-                    Получить предсказание
-                </button>
+        <!-- Categorical -->
+        <div class="card">
+            <div class="card-title">Qualitative Factors</div>
+            <div class="cat-grid">
+
+                <div class="field">
+                    <label>Parental Involvement</label>
+                    <select name="Parental_Involvement">
+                        <option value="Low">Low</option>
+                        <option value="Medium" selected>Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Access to Resources</label>
+                    <select name="Access_to_Resources">
+                        <option value="Low">Low</option>
+                        <option value="Medium" selected>Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Extracurricular Activities</label>
+                    <select name="Extracurricular_Activities">
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Motivation Level</label>
+                    <select name="Motivation_Level">
+                        <option value="Low">Low</option>
+                        <option value="Medium" selected>Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Internet Access</label>
+                    <select name="Internet_Access">
+                        <option value="No">No</option>
+                        <option value="Yes" selected>Yes</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Family Income</label>
+                    <select name="Family_Income">
+                        <option value="Low">Low</option>
+                        <option value="Medium" selected>Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Teacher Quality</label>
+                    <select name="Teacher_Quality">
+                        <option value="Low">Low</option>
+                        <option value="Medium" selected>Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>School Type</label>
+                    <select name="School_Type">
+                        <option value="Public" selected>Public</option>
+                        <option value="Private">Private</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Peer Influence</label>
+                    <select name="Peer_Influence">
+                        <option value="Negative">Negative</option>
+                        <option value="Neutral" selected>Neutral</option>
+                        <option value="Positive">Positive</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Learning Disabilities</label>
+                    <select name="Learning_Disabilities">
+                        <option value="No" selected>No</option>
+                        <option value="Yes">Yes</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Parental Education Level</label>
+                    <select name="Parental_Education_Level">
+                        <option value="High School">High School</option>
+                        <option value="College" selected>College</option>
+                        <option value="Postgraduate">Postgraduate</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Distance from Home</label>
+                    <select name="Distance_from_Home">
+                        <option value="Near">Near</option>
+                        <option value="Moderate" selected>Moderate</option>
+                        <option value="Far">Far</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Gender</label>
+                    <select name="Gender">
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+
             </div>
-            
-            <div class="col-span-1 md:col-span-2 mt-4">
-                <div id="resultBox" class="hidden text-center p-4 rounded-xl font-bold text-lg border">
-                    </div>
-            </div>
+        </div>
 
-        </form>
-    </div>
+        <!-- Submit -->
+        <div class="submit-wrap">
+            <button type="submit" id="submitBtn">Predict Exam Score</button>
+        </div>
 
-    <script>
-        document.getElementById('predictForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const resultBox = document.getElementById('resultBox');
-            resultBox.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
-            resultBox.innerHTML = 'Загрузка...';
-            resultBox.classList.add('block', 'bg-blue-100', 'text-blue-800');
+        <!-- Result -->
+        <div id="resultBox"></div>
 
-            
-            const formData = new FormData(this);
-            const data = {};
-            
-            for (let [key, value] of formData.entries()) {
-                
-                if (!isNaN(value) && value.trim() !== "") {
-                    data[key] = parseFloat(value);
-                } else {
-                    data[key] = value;
-                }
+    </form>
+
+</div>
+
+<script>
+    document.getElementById('predictForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const btn = document.getElementById('submitBtn');
+        const resultBox = document.getElementById('resultBox');
+
+        btn.disabled = true;
+        btn.textContent = 'Running model…';
+
+        resultBox.className = 'loading';
+        resultBox.style.display = 'block';
+        resultBox.innerHTML = `
+            <div class="result-label">Processing</div>
+            <div class="result-value"><span class="spinner"></span>Calculating…</div>
+        `;
+
+        const formData = new FormData(this);
+        const data = {};
+        for (let [key, value] of formData.entries()) {
+            data[key] = (!isNaN(value) && value.trim() !== '') ? parseFloat(value) : value;
+        }
+
+        try {
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                const score = result.predicted_value.toFixed(2);
+                resultBox.className = 'success';
+                resultBox.innerHTML = `
+                    <div class="result-label">Predicted Exam Score</div>
+                    <div class="result-value">${score}</div>
+                    <div class="result-sub">out of 100 · based on ${Object.keys(data).length} input features</div>
+                `;
+            } else {
+                throw new Error(result.detail || 'Unknown error');
             }
-
-            try {
-                
-                const response = await fetch('/predict', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    resultBox.classList.remove('bg-blue-100', 'text-blue-800');
-                    resultBox.classList.add('bg-green-100', 'text-green-800', 'border-green-300');
-                    
-                    resultBox.innerHTML = `Прогнозируемое значение: <span class="text-2xl ml-2">${result.predicted_value.toFixed(2)}</span>`;
-                } else {
-                    throw new Error(result.detail || 'Неизвестная ошибка');
-                }
-            } catch (error) {
-                resultBox.classList.remove('bg-blue-100', 'text-blue-800');
-                resultBox.classList.add('bg-red-100', 'text-red-800', 'border-red-300');
-                resultBox.innerHTML = `Ошибка: ${error.message}`;
-            }
-        });
-    </script>
+        } catch (err) {
+            resultBox.className = 'error';
+            resultBox.innerHTML = `
+                <div class="result-label">Error</div>
+                <div class="result-value">${err.message}</div>
+            `;
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Predict Exam Score';
+        }
+    });
+</script>
 </body>
 </html>
