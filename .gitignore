@@ -6,8 +6,6 @@ venv/
 __pycache__/
 *.pyc
 
-# Model files
-*.joblib
 
 # VS Code
 .vscode/
